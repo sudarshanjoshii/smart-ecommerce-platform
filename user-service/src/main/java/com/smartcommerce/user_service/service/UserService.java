@@ -1,9 +1,11 @@
 package com.smartcommerce.user_service.service;
 
+import com.smartcommerce.user_service.dto.LoginRequest;
 import com.smartcommerce.user_service.dto.RegisterRequest;
 import com.smartcommerce.user_service.entity.Role;
 import com.smartcommerce.user_service.entity.User;
 import com.smartcommerce.user_service.repository.UserRepository;
+import com.smartcommerce.user_service.security.JWTService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    private final JWTService jwtService;
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     public String Register(RegisterRequest request){
@@ -44,5 +47,27 @@ public class UserService {
         userRepository.save(user);
 
         return "User registered successfully";
+    }
+    public String login(LoginRequest request) {
+
+        User user = userRepository.findByEmail(request.getEmailOrPhone())
+                .orElseGet(() ->
+                        userRepository.findByPhone(request.getEmailOrPhone())
+                                .orElseThrow(() ->
+                                        new RuntimeException("User not found"))
+                );
+
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword())) {
+
+            throw new RuntimeException("Invalid password");
+        }
+
+        return jwtService.generateToken(
+                user.getEmail() != null ?
+                        user.getEmail() :
+                        user.getPhone()
+        );
     }
 }

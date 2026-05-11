@@ -1,5 +1,6 @@
 package com.smartcommerce.user_service.controller;
 
+import com.smartcommerce.user_service.dto.LoginRequest;
 import com.smartcommerce.user_service.dto.RegisterRequest;
 import com.smartcommerce.user_service.service.UserService;
 import jakarta.validation.Valid;
@@ -23,6 +24,14 @@ private final UserService userService;
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(userService.Register(request));
+    }
+    @PostMapping("/login")
+    public ResponseEntity<String> login(
+            @Valid @RequestBody LoginRequest request) {
+
+        return ResponseEntity.ok(
+                userService.login(request)
+        );
     }
 }
 
