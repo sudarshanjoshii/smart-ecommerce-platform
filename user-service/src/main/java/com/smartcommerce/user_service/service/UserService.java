@@ -7,7 +7,7 @@ import com.smartcommerce.user_service.entity.User;
 import com.smartcommerce.user_service.repository.UserRepository;
 import com.smartcommerce.user_service.security.JWTService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final JWTService jwtService;
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     public String Register(RegisterRequest request){
         // At least email or phone required
         if ((request.getEmail() == null || request.getEmail().isBlank()) &&

@@ -38,4 +38,21 @@ public class JWTService {
 
         return claims.getSubject();
     }
+    public boolean isTokenValid(String token, String username) {
+
+        final String extractedUsername = extractUsername(token);
+
+        return extractedUsername.equals(username)
+                && !isTokenExpired(token);
+    }
+    private boolean isTokenExpired(String token) {
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.getExpiration().before(new Date());
+    }
 }
