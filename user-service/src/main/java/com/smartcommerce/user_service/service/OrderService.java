@@ -2,8 +2,10 @@ package com.smartcommerce.user_service.service;
 
 import com.smartcommerce.user_service.dto.OrderRequest;
 import com.smartcommerce.user_service.entity.Order;
+import com.smartcommerce.user_service.entity.Product;
 import com.smartcommerce.user_service.kafka.OrderProducer;
 import com.smartcommerce.user_service.repository.OrderRepository;
+import com.smartcommerce.user_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrderService {
 
+    private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final OrderProducer orderProducer;
 
@@ -22,18 +25,43 @@ public class OrderService {
                         .getAuthentication()
                         .getName();
 
+        Product product = productRepository
+                .findById(request.getProductId())
+                .orElseThrow(() ->
+                        new RuntimeException("Product not found"));
+
+        // Check stock
+        if (product.getStock() < request.getQuantity()) {
+
+            throw new RuntimeException(
+                    "Insufficient stock available"
+            );
+        }
+
+        // Reduce stock
+        product.setStock(
+                product.getStock() - request.getQuantity()
+        );
+
+        productRepository.save(product);
+
+        double totalPrice =
+                product.getPrice() * request.getQuantity();
+
         Order order = Order.builder()
-                .productName(request.getProductName())
+                .productId(product.getId())
+                .productName(product.getName())
                 .quantity(request.getQuantity())
-                .price(request.getPrice())
+                .totalPrice(totalPrice)
                 .userEmail(user)
                 .build();
 
         orderRepository.save(order);
 
         orderProducer.sendOrderEvent(
-                "Order placed by: " + user +
-                        " Product: " + request.getProductName()
+                "ORDER PLACED | User: " + user +
+                        " | Product: " + product.getName() +
+                        " | Quantity: " + request.getQuantity()
         );
 
         return "Order placed successfully";

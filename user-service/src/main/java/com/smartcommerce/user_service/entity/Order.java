@@ -19,11 +19,13 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String productName;
-
     private Integer quantity;
 
-    private Double price;
+    private UUID productId;
+
+    private String productName;
+
+    private Double totalPrice;
 
     private String userEmail;
 
