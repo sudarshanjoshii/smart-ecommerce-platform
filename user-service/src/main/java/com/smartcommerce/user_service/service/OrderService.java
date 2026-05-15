@@ -3,6 +3,8 @@ package com.smartcommerce.user_service.service;
 import com.smartcommerce.user_service.dto.OrderRequest;
 import com.smartcommerce.user_service.entity.Order;
 import com.smartcommerce.user_service.entity.Product;
+import com.smartcommerce.user_service.exception.InsufficientStockException;
+import com.smartcommerce.user_service.exception.ResourceNotFoundException;
 import com.smartcommerce.user_service.kafka.OrderProducer;
 import com.smartcommerce.user_service.repository.OrderRepository;
 import com.smartcommerce.user_service.repository.ProductRepository;
@@ -28,12 +30,12 @@ public class OrderService {
         Product product = productRepository
                 .findById(request.getProductId())
                 .orElseThrow(() ->
-                        new RuntimeException("Product not found"));
+                        new ResourceNotFoundException("Product not found"));
 
         // Check stock
         if (product.getStock() < request.getQuantity()) {
 
-            throw new RuntimeException(
+            throw new InsufficientStockException(
                     "Insufficient stock available"
             );
         }
